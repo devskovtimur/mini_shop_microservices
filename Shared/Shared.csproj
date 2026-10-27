@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>16</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FluentValidation" Version="12.2.0"/>
+        <PackageReference Include="MediatR" Version="14.2.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- REMOVE the old Microsoft.AspNetCore.Http PackageReference -->
+        <!-- ADD this line instead: -->
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+</Project>
