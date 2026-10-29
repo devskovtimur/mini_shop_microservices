@@ -2,7 +2,6 @@ using Shared;
 using Shared.Abstractions;
 using WalletService.Features.Transactions.Abstractions;
 using WalletService.Features.Wallets.Abstractions;
-using WalletService.Shared.Infrastructure.Abstractions;
 
 namespace WalletService.Features.Transactions;
 

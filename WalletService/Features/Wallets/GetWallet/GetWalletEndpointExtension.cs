@@ -1,5 +1,6 @@
 using MediatR;
 using Shared.Extensions;
+using WalletService.Features.Wallets.Dtos;
 
 namespace WalletService.Features.Wallets.GetWallet;
 
@@ -20,7 +21,7 @@ public static class GetWalletEndpointExtension
                 })
             .WithName("GetWalletOfTheUser")
             .WithDescription("Get the User's Wallet")
-            .Produces<Guid>()
+            .Produces<UserWalletDto>()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .RequireAuthorization();
     }

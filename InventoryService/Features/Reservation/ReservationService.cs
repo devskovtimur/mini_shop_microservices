@@ -1,10 +1,7 @@
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using InventoryService.Features.Product.Abstractions;
 using InventoryService.Features.Reservation.Abstractions;
 using Shared;
 using Shared.Abstractions;
-using Shared.Contracts.Events.Inventory;
 
 namespace InventoryService.Features.Reservation;
 
@@ -17,7 +14,7 @@ public class ReservationService(
 {
     public async Task<Result<Guid>> ReserveProducts(
         Guid orderId,
-        IReadOnlyCollection<InventoryItemToReserve> itemsToReserve,
+        IReadOnlyCollection<InventoryItem> itemsToReserve,
         CancellationToken token = default)
     {
         // 1) Create Reservation
@@ -71,8 +68,15 @@ public class ReservationService(
                     return Result<Guid>.Failure(reservingResult.Error!);
                 }
 
+                var updateResult = await productRepository.UpdateQuantity(product, token);
+
+                if (updateResult.IsFailure)
+                {
+                    await unitOfWork.RollbackTransaction(token);
+                    return Result<Guid>.Failure(updateResult.Error!);
+                }
+
                 await reservationRepository.Add(reservation, token);
-                await productRepository.Update(product, token);
             }
 
             // 6) Commit
@@ -90,19 +94,7 @@ public class ReservationService(
     public async Task<Result> CancelReservation(Guid reservationId,
         CancellationToken token = default)
     {
-        // var reservation = await reservationRepository.GetById(reservationId, token);
-        //
-        // if (reservation == null)
-        // {
-        //     return Result.Failure(
-        //         Error.NotFound($"Reservation with {reservationId} ID not found"));
-        // }
-        //
-        // reservation.Cancel();
-        // await reservationRepository.UpdateReservationState(reservation, token);
-
-        // GET product and call AddProducts and refund the amount
-
+        // GET product, call product.AddProducts & reservation.Cancel and refund the amount
         return Result.Success();
     }
 }

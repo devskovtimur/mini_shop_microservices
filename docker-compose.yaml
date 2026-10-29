@@ -1,2 +1,62 @@
+version: '3.8'
+
 services:
+  # Wallet Service
+  wallet-service:
+    build:
+      context: ./WalletService
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=
+      - RabbitMqSettings__HostAddress=
+      - RabbitMqSettings__User=
+      - RabbitMqSettings__Password=
+    depends_on:
+      wallet-database:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
   
+  wallet-database:
+    image: postgres:18.6-alpine
+      container_name: wallet_postgres_db
+      restart: always
+      environment:
+        POSTGRES_USER: myuser
+        POSTGRES_PASSWORD: mysecretpassword
+        POSTGRES_DB: mydatabase
+      ports:
+        - "5432:5432"
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+
+  # RabbitMQ:
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbitmq
+    hostname: rabbitmq-server
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   # AMQP protocol port (for application connections)
+      - "15672:15672" # HTTP Management UI port (for web browser dashboard)
+    environment:
+      RABBITMQ_DEFAULT_USER: admin_user
+      RABBITMQ_DEFAULT_PASS: admin_password_123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  rabbitmq_logs:

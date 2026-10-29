@@ -1,36 +1,76 @@
 using InventoryService.Features.Reservation.Abstractions;
+using InventoryService.Shared.Extensions;
+using MongoDB.Driver;
+using Shared;
 
 namespace InventoryService.Features.Reservation;
 
-public class ReservationRepository : IReservationRepository
+public class ReservationRepository(
+    IMongoDatabase database) : IReservationRepository
 {
-    public Task<Reservation?> GetById(Guid id)
+    private readonly IMongoCollection<Reservation> _collection =
+        database.GetCollection<Reservation>("reservations");
+
+    public async Task<Reservation?> GetById(Guid id, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var filter = Builders<Reservation>.Filter.GetFilterById(id);
+        return await _collection.Find(filter).FirstOrDefaultAsync(ct);
     }
 
-    public Task<bool> Exists(Guid id)
+    public async Task<bool> Exists(Guid id, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var reservation = await GetById(id, ct);
+        return reservation is not null;
     }
 
-    public Task Add(Reservation entity)
+    public async Task Add(Reservation entity, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        await _collection.InsertOneAsync(entity, cancellationToken: ct);
     }
 
-    public Task Update(Reservation entity)
+    public async Task<Result> SoftRemove(Reservation entity, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        entity.DeleteEntity();
+        var filter = Builders<Reservation>.Filter.GetFilterById(entity.Id);
+
+        var update = Builders<Reservation>.Update
+            .Set(x => x.DeletedAtUtc, entity.DeletedAtUtc)
+            .Set(x => x.IsDeleted, entity.IsDeleted);
+
+        var result = await _collection.UpdateOneAsync(filter, update, cancellationToken: ct);
+        return GetResultDependingOnUpdateResult(result, entity.Id);
     }
 
-    public Task Remove(Reservation entity)
+    public async Task<Reservation?> GetByOrderId(Guid orderId, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var filterBuilder = Builders<Reservation>.Filter;
+        var filter = filterBuilder.Eq(x => x.OrderId, orderId) & filterBuilder.NotDeletedOnly();
+
+        return await _collection.Find(filter).FirstOrDefaultAsync(ct);
     }
 
-    public async Task UpdateReservationState(Reservation reservation, CancellationToken ct = default)
+    public async Task<Result> UpdateReservationState(Reservation entity, CancellationToken ct = default)
     {
-        throw new NotImplementedException();
+        var filter = Builders<Reservation>.Filter.GetFilterById(entity.Id);
+        var update = Builders<Reservation>.Update
+            .Set(x => x.Status, entity.Status);
+
+        var result = await _collection.UpdateOneAsync(filter, update, cancellationToken: ct);
+        return GetResultDependingOnUpdateResult(result, entity.Id);
+    }
+
+    private Result GetResultDependingOnUpdateResult(UpdateResult updateResult, Guid id)
+    {
+        if (updateResult.MatchedCount > 0)
+        {
+            return updateResult.ModifiedCount > 0
+                ? Result.Success()
+                : Result.Failure(Error.Conflict(
+                    $"Reservation with {id} ID was found, " +
+                    $"but nothing has changed because it already has the same values."));
+        }
+
+        return Result.Failure(
+            Error.NotFound($"Reservation with {id} ID not found"));
     }
 }

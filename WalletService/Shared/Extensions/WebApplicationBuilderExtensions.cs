@@ -13,7 +13,7 @@ public static class WebApplicationBuilderExtensions
     public static void SetupDapper(this WebApplicationBuilder builder)
     {
         builder.Services.AddNpgsqlDataSource(
-            builder.Configuration.GetConnectionString("PostgresqlDatabase")!);
+            builder.Configuration.GetConnectionString("PostgresConnection")!);
 
         builder.Services.AddScoped<DatabaseContext>();
         builder.Services.AddScoped<IDbConnectionProvider>(sp => sp.GetRequiredService<DatabaseContext>());

@@ -25,17 +25,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
-    </ItemGroup>
-
-    <ItemGroup>
       <Folder Include="Features\Order\GetOrders\" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Shared\Shared.csproj" />
+      <ProjectReference Include="..\WalletService\WalletService.csproj" />
     </ItemGroup>
 
 </Project>

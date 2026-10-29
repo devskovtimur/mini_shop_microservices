@@ -9,6 +9,6 @@ public class TransactionDto
     public bool IsDeleted { get; init; }
     
     public decimal Amount { get; init; }
-    public TransactionType TransactionType { get; init; }
+    public required string TransactionType { get; init; }
     public Guid WalletAndOwnerId { get; init; }
 }

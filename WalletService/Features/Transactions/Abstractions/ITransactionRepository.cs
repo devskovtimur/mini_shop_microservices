@@ -6,8 +6,8 @@ public interface ITransactionRepository
 
     Task<IEnumerable<Transaction>> GetTransactions(
         Guid walletAndOwnerId,
-        long pageSize,
-        long page,
+        int pageSize,
+        int page,
         CancellationToken ct = default);
 
     Task<bool> Exists(Guid id, CancellationToken ct = default);

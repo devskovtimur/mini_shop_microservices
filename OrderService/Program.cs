@@ -1,5 +1,5 @@
 using MassTransit;
-using OrderService.Shared.Settings;
+using WalletService.Shared.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 

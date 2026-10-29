@@ -1,12 +1,12 @@
 using InventoryService.Features.ReservedProduct;
 using Shared;
-using Shared.Contracts.Events.Inventory;
 
 namespace InventoryService.Features.Reservation;
 
+
 public class Reservation : BaseEntity
 {
-    private Reservation(Guid orderId, IReadOnlyCollection<InventoryItemToReserve> items)
+    private Reservation(Guid orderId, IReadOnlyCollection<InventoryItem> items)
     {
         OrderId = orderId;
         Items = items;
@@ -14,11 +14,11 @@ public class Reservation : BaseEntity
     }
 
     public Guid OrderId { get; private set; }
-    public IReadOnlyCollection<InventoryItemToReserve> Items { get; private set; }
+    public IReadOnlyCollection<InventoryItem> Items { get; private set; }
     public ReservationStatus Status { get; private set; }
 
     public static Result<Reservation> CreateReservation(Guid orderId,
-        IReadOnlyCollection<InventoryItemToReserve> items)
+        IReadOnlyCollection<InventoryItem> items)
     {
         var reservedProduct = new Reservation(orderId, items);
         return ReservationValidator.Validator.Validate(reservedProduct);

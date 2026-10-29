@@ -23,8 +23,8 @@ public class TransactionRepository(
 
     public async Task<IEnumerable<Transaction>> GetTransactions(
         Guid walletAndOwnerId,
-        long pageSize,
-        long page,
+        int pageSize,
+        int page,
         CancellationToken ct = default)
     {
         const string sql = @"SELECT * FROM transactions 
@@ -32,7 +32,7 @@ public class TransactionRepository(
                              ORDER BY id 
                              LIMIT @PageSize
                              OFFSET @OffSet;";
-        var offset = (pageSize - 1) * page;
+        var offset = (page - 1) * pageSize;
 
         return await Connection.QueryAsync<Transaction>(sql,
             new

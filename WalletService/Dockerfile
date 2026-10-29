@@ -1,23 +1,23 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
+ARG BUILD_CONFIGURATION=Development
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY ["PaymentService/PaymentService.csproj", "PaymentService/"]
-RUN dotnet restore "PaymentService/PaymentService.csproj"
+COPY ["WalletService/WalletService.csproj", "WalletService/"]
+COPY ["Shared/Shared.csproj", "Shared/"]
+RUN dotnet restore "WalletService/WalletService.csproj"
 COPY . .
-WORKDIR "/src/PaymentService"
-RUN dotnet build "PaymentService.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/WalletService"
+RUN dotnet build "./WalletService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "PaymentService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./WalletService.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "PaymentService.dll"]
+ENTRYPOINT ["dotnet", "WalletService.dll"]
